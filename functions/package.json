@@ -1,0 +1,8 @@
+{
+  "name": "temu-functions",
+  "version": "1.0.0",
+  "main": "track.js",
+  "dependencies": {
+    "node-fetch": "^2.6.9"
+  }
+}
