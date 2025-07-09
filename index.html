@@ -1,42 +1,44 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Настройка LetyShops-ссылки</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2rem; }
-    textarea { width: 100%; height: 150px; }
-    button { padding: 10px 20px; margin-top: 1rem; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Redirect...</title>
 </head>
 <body>
-  <h1>Шаг 1: Вставьте актуальную ссылку от LetyShops</h1>
-  <textarea id="letyUrl"></textarea>
-  <button onclick="saveLetyParams()">Сохранить параметры</button>
-  <p id="status"></p>
-
+  <p>Redirecting...</p>
   <script>
-    function getParams(url) {
-      const u = new URL(url);
-      const params = {};
-      u.searchParams.forEach((v, k) => {
-        if (k.startsWith('_x_ns_') || k.startsWith('_x_ads_') || k.startsWith('_x_sessn_id')) {
-          params[k] = v;
-        }
+    async function redirect() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      const response = await fetch("data.json");
+      const data = await response.json();
+
+      if (!id) {
+        document.body.innerHTML = "<h1>Список коротких ссылок</h1>";
+        const list = Object.entries(data.links).map(([key, value]) => {
+          return `<li><strong>${key}</strong>: <a href="?id=${key}">${value.url}</a> (${value.clicks} переходов)</li>`;
+        }).join("");
+        document.body.innerHTML += `<ul>${list}</ul>`;
+        return;
+      }
+
+      const letyBase = new URL(data.letyParamsUrl);
+      const item = data.links[id];
+
+      if (!item) {
+        document.body.innerHTML = "<p>❌ Ссылка не найдена</p>";
+        return;
+      }
+
+      const productUrl = new URL(item.url);
+      letyBase.searchParams.forEach((v, k) => {
+        productUrl.searchParams.set(k, v);
       });
-      return params;
+
+      window.location.href = productUrl.toString();
     }
 
-    function saveLetyParams() {
-      const url = document.getElementById('letyUrl').value;
-      try {
-        const params = getParams(url);
-        localStorage.setItem('letyParams', JSON.stringify(params));
-        document.getElementById('status').textContent = '✅ Параметры сохранены!';
-      } catch (e) {
-        document.getElementById('status').textContent = '❌ Ошибка обработки ссылки';
-      }
-    }
+    redirect();
   </script>
 </body>
 </html>
