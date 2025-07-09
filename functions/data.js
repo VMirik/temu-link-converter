@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 const FIREBASE_URL = "https://temu-link-converter-default-rtdb.europe-west1.firebasedatabase.app";
 
 exports.handler = async function () {
