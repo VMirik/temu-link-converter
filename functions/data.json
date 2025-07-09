@@ -1,9 +1,0 @@
-{
-  "letyParamsUrl": "https://www.temu.com/pl/goods.html?_x_ns_irclickid=abc123&_x_ads_account=18350&_x_ns_irpid=999",
-  "links": {
-    "abc123": {
-      "url": "https://www.temu.com/pl/goods.html?goods_id=601101343503512&sku_id=17599390928353",
-      "clicks": 0
-    }
-  }
-}

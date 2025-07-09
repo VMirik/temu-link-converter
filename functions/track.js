@@ -1,35 +1,55 @@
+const fetch = require("node-fetch");
 
-const fs = require("fs");
-const path = require("path");
+const FIREBASE_URL = "https://temu-link-converter-default-rtdb.europe-west1.firebasedatabase.app";
 
 exports.handler = async function (event) {
   const params = new URLSearchParams(event.rawUrl.split("?")[1]);
   const id = params.get("id");
 
-  const dbPath = path.join(__dirname, "data.json");
-  const db = JSON.parse(fs.readFileSync(dbPath));
-
-  if (!id || !db.links[id]) {
+  if (!id) {
     return {
-      statusCode: 404,
-      body: "Short link not found."
+      statusCode: 400,
+      body: "Missing id parameter"
     };
   }
 
-  db.links[id].clicks += 1;
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+  try {
+    const res = await fetch(`${FIREBASE_URL}/links/${id}.json`);
+    const data = await res.json();
 
-  const lety = new URL(db.letyParamsUrl);
-  const target = new URL(db.links[id].url);
-
-  lety.searchParams.forEach((v, k) => {
-    target.searchParams.set(k, v);
-  });
-
-  return {
-    statusCode: 302,
-    headers: {
-      Location: target.toString()
+    if (!data || !data.url) {
+      return {
+        statusCode: 404,
+        body: "Short link not found"
+      };
     }
-  };
+
+    const baseRes = await fetch(`${FIREBASE_URL}/letyParamsUrl.json`);
+    const baseUrl = await baseRes.json();
+
+    const lety = new URL(baseUrl);
+    const target = new URL(data.url);
+
+    lety.searchParams.forEach((v, k) => {
+      target.searchParams.set(k, v);
+    });
+
+    await fetch(`${FIREBASE_URL}/links/${id}/clicks.json`, {
+      method: "PUT",
+      body: JSON.stringify((data.clicks || 0) + 1)
+    });
+
+    return {
+      statusCode: 302,
+      headers: {
+        Location: target.toString()
+      }
+    };
+
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: "Server error: " + error.toString()
+    };
+  }
 };

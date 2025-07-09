@@ -5,28 +5,28 @@
   <title>Temu Short Links</title>
 </head>
 <body>
-  <p>Загрузка...</p>
+  <h1>Temu Short Links</h1>
+  <ul id="link-list"><li>Загрузка...</li></ul>
+
   <script>
-    async function load() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
 
-      if (id) {
-        window.location.href = "/track?id=" + id;
-        return;
-      }
-
-      const response = await fetch("/functions/data.json");
-      const db = await response.json();
-
-      document.body.innerHTML = "<h1>Список коротких ссылок</h1>";
-      const list = Object.entries(db.links).map(([key, value]) => {
-        return `<li><strong>${key}</strong>: <a href="?id=${key}">${value.url}</a> (${value.clicks} переходов)</li>`;
-      }).join("");
-      document.body.innerHTML += `<ul>${list}</ul>`;
+    if (id) {
+      window.location.href = "/track?id=" + id;
+    } else {
+      fetch("/data")
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("link-list");
+          list.innerHTML = "";
+          for (const key in data) {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${key}</strong>: <a href="?id=${key}" target="_blank">${data[key].url}</a> — ${data[key].clicks || 0} переходов`;
+            list.appendChild(li);
+          }
+        });
     }
-
-    load();
   </script>
 </body>
 </html>
