@@ -2,43 +2,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Redirect...</title>
+  <title>Temu Short Links</title>
 </head>
 <body>
-  <p>Redirecting...</p>
+  <p>Загрузка...</p>
   <script>
-    async function redirect() {
+    async function load() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
-      const response = await fetch("data.json");
-      const data = await response.json();
 
-      if (!id) {
-        document.body.innerHTML = "<h1>Список коротких ссылок</h1>";
-        const list = Object.entries(data.links).map(([key, value]) => {
-          return `<li><strong>${key}</strong>: <a href="?id=${key}">${value.url}</a> (${value.clicks} переходов)</li>`;
-        }).join("");
-        document.body.innerHTML += `<ul>${list}</ul>`;
+      if (id) {
+        window.location.href = "/track?id=" + id;
         return;
       }
 
-      const letyBase = new URL(data.letyParamsUrl);
-      const item = data.links[id];
+      const response = await fetch("/functions/data.json");
+      const db = await response.json();
 
-      if (!item) {
-        document.body.innerHTML = "<p>❌ Ссылка не найдена</p>";
-        return;
-      }
-
-      const productUrl = new URL(item.url);
-      letyBase.searchParams.forEach((v, k) => {
-        productUrl.searchParams.set(k, v);
-      });
-
-      window.location.href = productUrl.toString();
+      document.body.innerHTML = "<h1>Список коротких ссылок</h1>";
+      const list = Object.entries(db.links).map(([key, value]) => {
+        return `<li><strong>${key}</strong>: <a href="?id=${key}">${value.url}</a> (${value.clicks} переходов)</li>`;
+      }).join("");
+      document.body.innerHTML += `<ul>${list}</ul>`;
     }
 
-    redirect();
+    load();
   </script>
 </body>
 </html>
