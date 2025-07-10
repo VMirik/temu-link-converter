@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dodaj nowy link</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .message {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dodaj nowy link</h1>
+
+  <form id="linkForm">
+    <label for="letyLink">LetyShops link (opcjonalnie - aktualizuje bazę)</label>
+    <input type="url" id="letyLink" placeholder="https://..." />
+
+    <label for="shortKey">Krótki identyfikator</label>
+    <input type="text" id="shortKey" required />
+
+    <label for="productUrl">Link do produktu TEMU</label>
+    <input type="url" id="productUrl" required />
+
+    <button type="submit">Zapisz</button>
+  </form>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const FIREBASE_BASE = 'https://temu-link-converter-default-rtdb.europe-west1.firebasedatabase.app';
+
+    document.getElementById('linkForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const shortKey = document.getElementById('shortKey').value.trim();
+      const productUrl = document.getElementById('productUrl').value.trim();
+      const letyLink = document.getElementById('letyLink').value.trim();
+
+      const msgEl = document.getElementById('message');
+      msgEl.textContent = 'Zapisywanie...';
+
+      try {
+        if (letyLink) {
+          await fetch(`${FIREBASE_BASE}/letyParamsUrl.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(letyLink)
+          });
+        }
+
+        await fetch(`${FIREBASE_BASE}/links/${shortKey}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: productUrl, clicks: 0 })
+        });
+
+        msgEl.textContent = 'Link zapisany pomyślnie!';
+        e.target.reset();
+      } catch (err) {
+        msgEl.textContent = 'Błąd: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
